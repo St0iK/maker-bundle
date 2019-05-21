@@ -55,4 +55,25 @@ CODE
         );
         $manipulator->addMethodBuilder($loginMethodBuilder);
     }
+
+    public function addLogoutMethod(ClassSourceManipulator $manipulator)
+    {
+        $logoutMethodBuilder = $manipulator->createMethodBuilder('logout', 'Response', false, ['@Route("/logout", name="app_logout" , methods={"GET"})']);
+
+        $manipulator->addUseStatementIfNecessary(Response::class);
+        $manipulator->addUseStatementIfNecessary(Route::class);
+        $manipulator->addUseStatementIfNecessary(AuthenticationUtils::class);
+
+        $logoutMethodBuilder->addParam(
+            (new \PhpParser\Builder\Param('authenticationUtils'))->setTypeHint('AuthenticationUtils')
+        );
+
+        $manipulator->addMethodBody($logoutMethodBuilder, <<<'CODE'
+<?php
+// controller can be blank: it will never be executed!
+throw new \Exception('Don\'t forget to activate logout in security.yaml');
+CODE
+        );
+        $manipulator->addMethodBuilder($logoutMethodBuilder);
+    }
 }

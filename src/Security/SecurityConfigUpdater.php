@@ -48,7 +48,7 @@ final class SecurityConfigUpdater
         return $contents;
     }
 
-    public function updateForAuthenticator(string $yamlSource, string $firewallName, $chosenEntryPoint, string $authenticatorClass): string
+    public function updateForAuthenticator(string $yamlSource, string $firewallName, $chosenEntryPoint, string $authenticatorClass, bool $logoutSupport): string
     {
         $this->manipulator = new YamlSourceManipulator($yamlSource);
 
@@ -62,6 +62,10 @@ final class SecurityConfigUpdater
 
         if (!isset($newData['security']['firewalls'][$firewallName])) {
             $newData['security']['firewalls'][$firewallName] = ['anonymous' => true];
+        }
+
+        if (!isset($newData['security']['firewalls'][$firewallName]['logout']) && $logoutSupport) {
+            $newData['security']['firewalls'][$firewallName] = ['path' => 'app_logout'];
         }
 
         $firewall = $newData['security']['firewalls'][$firewallName];
