@@ -427,6 +427,7 @@ class FunctionalTest extends MakerTestCase
                     'AppCustomAuthenticator',
                     // controller name
                     'SecurityController',
+                    "no"
                 ]
             )
             ->addExtraDependencies('doctrine')
@@ -460,7 +461,8 @@ class FunctionalTest extends MakerTestCase
                     // user class
                     'App\\Security\\User',
                     // username field => userEmail
-                    0
+                    0,
+                    "no"
                 ]
             )
             ->addExtraDependencies('doctrine/annotations')
@@ -479,6 +481,7 @@ class FunctionalTest extends MakerTestCase
                     'AppCustomAuthenticator',
                     // controller name
                     'SecurityController',
+                    "no"
                 ]
             )
             ->addExtraDependencies('doctrine')
@@ -501,6 +504,7 @@ class FunctionalTest extends MakerTestCase
                     'SecurityController',
                     // user class
                     'App\Security\User',
+                    "no"
                 ]
             )
             ->addExtraDependencies('twig')
@@ -521,6 +525,7 @@ class FunctionalTest extends MakerTestCase
                     'SecurityController',
                     // user class
                     'App\Security\User',
+                    "no"
                 ]
             )
             ->addExtraDependencies('twig')
@@ -539,6 +544,7 @@ class FunctionalTest extends MakerTestCase
                     'AppCustomAuthenticator',
                     // controller name
                     'SecurityController',
+                    "no"
                 ]
             )
             ->addExtraDependencies('doctrine')
