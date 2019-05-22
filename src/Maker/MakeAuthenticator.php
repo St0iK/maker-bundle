@@ -164,6 +164,15 @@ final class MakeAuthenticator extends AbstractMaker
                 'username-field',
                 $interactiveSecurityHelper->guessUserNameField($io, $userClass, $securityData['security']['providers'])
             );
+
+            $command->addArgument('logout-support', InputArgument::REQUIRED);
+            $input->setArgument(
+                'logout-support',
+                $io->confirm(
+                    'Do you want to generate a /logout URL?',
+                    true
+                )
+            );
         }
     }
 
@@ -187,7 +196,8 @@ final class MakeAuthenticator extends AbstractMaker
                 $this->fileManager->getFileContents($path = 'config/packages/security.yaml'),
                 $input->getOption('firewall-name'),
                 $input->getOption('entry-point'),
-                $input->getArgument('authenticator-class')
+                $input->getArgument('authenticator-class'),
+                $input->hasArgument('logout-support') ? $input->getArgument('logout-support') : false
             );
             $generator->dumpFile($path, $newYaml);
             $securityYamlUpdated = true;
@@ -195,7 +205,11 @@ final class MakeAuthenticator extends AbstractMaker
         }
 
         if (self::AUTH_TYPE_FORM_LOGIN === $input->getArgument('authenticator-type')) {
-            $this->generateFormLoginFiles($input->getArgument('controller-class'), $input->getArgument('username-field'));
+            $this->generateFormLoginFiles(
+                $input->getArgument('controller-class'),
+                $input->getArgument('username-field'),
+                $input->getArgument('logout-support')
+            );
         }
 
         $generator->writeChanges();
@@ -240,12 +254,18 @@ final class MakeAuthenticator extends AbstractMaker
                 'username_field' => $userNameField,
                 'username_field_label' => Str::asHumanWords($userNameField),
                 'user_needs_encoder' => $this->userClassHasEncoder($securityData, $userClass),
-                'user_is_entity' => $this->doctrineHelper->isClassAMappedEntity($userClass),
+                'user_is_entity' => $this->doctrineHelper->isClassAMappedEntity($userClass)
             ]
         );
     }
 
-    private function generateFormLoginFiles(string $controllerClass, string $userNameField)
+    /**
+     * @param string $controllerClass
+     * @param string $userNameField
+     * @param bool $logoutSupport
+     * @throws \Exception
+     */
+    private function generateFormLoginFiles(string $controllerClass, string $userNameField, bool $logoutSupport)
     {
         $controllerClassNameDetails = $this->generator->createClassNameDetails(
             $controllerClass,
@@ -273,6 +293,9 @@ final class MakeAuthenticator extends AbstractMaker
 
         $securityControllerBuilder = new SecurityControllerBuilder();
         $securityControllerBuilder->addLoginMethod($manipulator);
+        if($logoutSupport) {
+            $securityControllerBuilder->addLogoutMethod($manipulator);
+        }
 
         $this->generator->dumpFile($controllerPath, $manipulator->getSourceCode());
 
@@ -284,6 +307,7 @@ final class MakeAuthenticator extends AbstractMaker
                 'username_field' => $userNameField,
                 'username_is_email' => false !== stripos($userNameField, 'email'),
                 'username_label' => ucfirst(Str::asHumanWords($userNameField)),
+                'logout_support' => $logoutSupport
             ]
         );
     }
