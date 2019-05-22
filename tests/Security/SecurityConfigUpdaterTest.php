@@ -75,7 +75,7 @@ class SecurityConfigUpdaterTest extends TestCase
     {
         $updater = new SecurityConfigUpdater();
         $source = file_get_contents(__DIR__.'/yaml_fixtures/source/'.$startingSourceFilename);
-        $actualSource = $updater->updateForAuthenticator($source, $firewallName, $entryPoint, 'App\\Security\\AppCustomAuthenticator');
+        $actualSource = $updater->updateForAuthenticator($source, $firewallName, $entryPoint, 'App\\Security\\AppCustomAuthenticator', false);
         $expectedSource = file_get_contents(__DIR__.'/yaml_fixtures/expected_authenticator/'.$expectedSourceFilename);
 
         $this->assertSame($expectedSource, $actualSource);
