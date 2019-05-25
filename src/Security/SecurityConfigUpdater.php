@@ -48,7 +48,7 @@ final class SecurityConfigUpdater
         return $contents;
     }
 
-    public function updateForAuthenticator(string $yamlSource, string $firewallName, $chosenEntryPoint, string $authenticatorClass, bool $logoutSupport): string
+    public function updateForAuthenticator(string $yamlSource, string $firewallName, $chosenEntryPoint, string $authenticatorClass, bool $logoutSetup): string
     {
         $this->manipulator = new YamlSourceManipulator($yamlSource);
 
@@ -62,10 +62,6 @@ final class SecurityConfigUpdater
 
         if (!isset($newData['security']['firewalls'][$firewallName])) {
             $newData['security']['firewalls'][$firewallName] = ['anonymous' => true];
-        }
-
-        if (!isset($newData['security']['firewalls'][$firewallName]['logout']) && $logoutSupport) {
-            $newData['security']['firewalls'][$firewallName] = ['path' => 'app_logout'];
         }
 
         $firewall = $newData['security']['firewalls'][$firewallName];
@@ -82,6 +78,16 @@ final class SecurityConfigUpdater
 
         if (\count($firewall['guard']['authenticators']) > 1) {
             $firewall['guard']['entry_point'] = $chosenEntryPoint ?? current($firewall['guard']['authenticators']);
+        }
+
+        if (!isset($firewall['logout']) && $logoutSetup) {
+            $firewall['logout'] = ['path' => 'app_logout'];
+            $firewall['logout'][1] = $this->manipulator->createCommentLine(
+                ' where to redirect after logout'
+            );
+            $firewall['logout'][2] = $this->manipulator->createCommentLine(
+                ' target: app_any_route'
+            );
         }
 
         $newData['security']['firewalls'][$firewallName] = $firewall;

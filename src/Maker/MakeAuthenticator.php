@@ -165,11 +165,11 @@ final class MakeAuthenticator extends AbstractMaker
                 $interactiveSecurityHelper->guessUserNameField($io, $userClass, $securityData['security']['providers'])
             );
 
-            $command->addArgument('logout-functionality', InputArgument::REQUIRED);
+            $command->addArgument('logout-setup', InputArgument::REQUIRED);
             $input->setArgument(
-                'logout-support',
+                'logout-setup',
                 $io->confirm(
-                    'Do you want to generate a /logout URL?)',
+                    'Do you want to generate a /logout URL?',
                     true
                 )
             );
@@ -186,8 +186,7 @@ final class MakeAuthenticator extends AbstractMaker
             $input->getArgument('authenticator-type'),
             $input->getArgument('authenticator-class'),
             $input->hasArgument('user-class') ? $input->getArgument('user-class') : null,
-            $input->hasArgument('username-field') ? $input->getArgument('username-field') : null,
-            $input->getArgument('logout-support')
+            $input->hasArgument('username-field') ? $input->getArgument('username-field') : null
         );
 
         // update security.yaml with guard config
@@ -198,7 +197,7 @@ final class MakeAuthenticator extends AbstractMaker
                 $input->getOption('firewall-name'),
                 $input->getOption('entry-point'),
                 $input->getArgument('authenticator-class'),
-                $input->getArgument('logout-support')
+                $input->hasArgument('logout-setup') ? $input->getArgument('logout-setup') : false
             );
             $generator->dumpFile($path, $newYaml);
             $securityYamlUpdated = true;
@@ -209,7 +208,7 @@ final class MakeAuthenticator extends AbstractMaker
             $this->generateFormLoginFiles(
                 $input->getArgument('controller-class'),
                 $input->getArgument('username-field'),
-                $input->getArgument('logout-support')
+                $input->getArgument('logout-setup')
             );
         }
 
@@ -228,7 +227,7 @@ final class MakeAuthenticator extends AbstractMaker
         );
     }
 
-    private function generateAuthenticatorClass(array $securityData, string $authenticatorType, string $authenticatorClass, $userClass, $userNameField, bool $logoutSupport)
+    private function generateAuthenticatorClass(array $securityData, string $authenticatorType, string $authenticatorClass, $userClass, $userNameField)
     {
         // generate authenticator class
         if (self::AUTH_TYPE_EMPTY_AUTHENTICATOR === $authenticatorType) {
@@ -255,8 +254,7 @@ final class MakeAuthenticator extends AbstractMaker
                 'username_field' => $userNameField,
                 'username_field_label' => Str::asHumanWords($userNameField),
                 'user_needs_encoder' => $this->userClassHasEncoder($securityData, $userClass),
-                'user_is_entity' => $this->doctrineHelper->isClassAMappedEntity($userClass),
-                'logout_support' => $logoutSupport
+                'user_is_entity' => $this->doctrineHelper->isClassAMappedEntity($userClass)
             ]
         );
     }
@@ -264,10 +262,10 @@ final class MakeAuthenticator extends AbstractMaker
     /**
      * @param string $controllerClass
      * @param string $userNameField
-     * @param bool $logoutSupport
+     * @param bool $logoutSetup
      * @throws \Exception
      */
-    private function generateFormLoginFiles(string $controllerClass, string $userNameField, bool $logoutSupport)
+    private function generateFormLoginFiles(string $controllerClass, string $userNameField, bool $logoutSetup)
     {
         $controllerClassNameDetails = $this->generator->createClassNameDetails(
             $controllerClass,
@@ -295,7 +293,7 @@ final class MakeAuthenticator extends AbstractMaker
 
         $securityControllerBuilder = new SecurityControllerBuilder();
         $securityControllerBuilder->addLoginMethod($manipulator);
-        if($logoutSupport) {
+        if($logoutSetup) {
             $securityControllerBuilder->addLogoutMethod($manipulator);
         }
 
@@ -309,7 +307,7 @@ final class MakeAuthenticator extends AbstractMaker
                 'username_field' => $userNameField,
                 'username_is_email' => false !== stripos($userNameField, 'email'),
                 'username_label' => ucfirst(Str::asHumanWords($userNameField)),
-                'logout_support' => $logoutSupport
+                'logout_support' => $logoutSetup
             ]
         );
     }
